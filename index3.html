@@ -23,7 +23,7 @@
 	<body>
 		<script type="text/javascript">
 			var container, stats;
-			var audio, context, analyser;
+			var audio, context, analyser, volume;
 			var camera, scene, renderer;
 			var light;
 			var geometry, material;
@@ -60,6 +60,7 @@
 			container.appendChild(audio);
 		
 			context = new webkitAudioContext();
+            volume = context.createGainNode();
 			analyser = context.createAnalyser();
 		
 			window.self.addEventListener("mousemove", onMouseMove, false);
@@ -89,7 +90,8 @@
 			function onLoad()
 			{
 				var source = context.createMediaElementSource(audio);
-				source.connect(analyser);
+				source.connect(volume);
+                volume.connect(analyser);
 				analyser.connect(context.destination);
 				
 				init();
