@@ -34,7 +34,7 @@
 			var windowHalfY = window.innerHeight / 2;
 			var spacerWidth = 3;
 			var blockWidth = 5;
-			var numCubes = Math.round((window.innerWidth / spacerWidth) / 9) ;
+			var numCubes = Math.floor((window.innerWidth / spacerWidth) / 10);
 			var spacer = Math.floor(numCubes / 2) * -1;
 			var offset = Math.round(960 / numCubes);
 			var run = true;
@@ -86,7 +86,7 @@
 				}
 			}
 			
-			function onLoad(e)
+			function onLoad()
 			{
 				var source = context.createMediaElementSource(audio);
 				source.connect(analyser);
@@ -163,7 +163,7 @@
 				window.self.addEventListener("resize", onWindowResize, false);
 		
 				tick();
-			};
+			}
 			
 			function pad(n, width, z)
 			{
@@ -173,7 +173,7 @@
 				return (n.length >= width) ? n : new Array(width - n.length + 1).join(z) + n;
 			}
 			
-			function tick(delta)
+			function tick()
 			{
 				if (run) requestAnimationFrame(tick);
 				
@@ -192,7 +192,7 @@
 				camera.lookAt(scene.position);
 
 				renderer.render(scene, camera);
-			};
+			}
 		</script>
 	</body>
 </html>
