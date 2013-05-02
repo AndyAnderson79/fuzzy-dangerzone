@@ -39,6 +39,7 @@
 			var offset = Math.round(960 / numCubes);
 			var run = true;
 			var i;
+            var text;
 
 			container = document.createElement("div");
 			document.body.appendChild(container);
@@ -163,6 +164,9 @@
 				renderer.sortObjects = false;
 				container.appendChild(renderer.domElement);
 
+                text = createLabel("Datassette - Malfunction", window.self.innerWidth / 2 - 300, window.self.innerHeight / 2 - 300, 0, 100, "black", "yellow");
+                scene.add(text);
+
 				window.self.addEventListener("resize", onWindowResize, false);
 		
 				tick();
@@ -175,6 +179,51 @@
 
 				return (n.length >= width) ? n : new Array(width - n.length + 1).join(z) + n;
 			}
+
+            function createLabel(text, x, y, z, size, color, backGroundColor, backgroundMargin)
+            {
+                backgroundMargin = backgroundMargin || 50;
+
+                var canvas = document.createElement("canvas");
+
+                var context = canvas.getContext("2d");
+                context.font = size + "pt Arial";
+
+                var textWidth = context.measureText(text).width;
+
+                canvas.width = textWidth + backgroundMargin;
+                canvas.height = size + backgroundMargin;
+                //context = canvas.getContext("2d");
+                context.font = size + "pt Arial";
+
+                if (backGroundColor)
+                {
+                    context.fillStyle = backGroundColor;
+                    context.fillRect(canvas.width / 2 - textWidth / 2 - backgroundMargin / 2, canvas.height / 2 - size / 2 - +backgroundMargin / 2, textWidth + backgroundMargin, size + backgroundMargin);
+                }
+
+                context.textAlign = "center";
+                context.textBaseline = "middle";
+                context.fillStyle = color;
+                context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+                // context.strokeStyle = "black";
+                // context.strokeRect(0, 0, canvas.width, canvas.height);
+
+                var texture = new THREE.Texture(canvas);
+                texture.needsUpdate = true;
+
+                var material = new THREE.MeshBasicMaterial({ map : texture });
+
+                var mesh = new THREE.Mesh(new THREE.PlaneGeometry(canvas.width, canvas.height), material);
+                // mesh.overdraw = true;
+                mesh.doubleSided = true;
+                mesh.position.x = x - canvas.width;
+                mesh.position.y = y - canvas.height;
+                mesh.position.z = z;
+
+                return mesh;
+            }
 			
 			function tick()
 			{
@@ -189,7 +238,7 @@
 					cubes[i].scale.y = magnitude;
 					cubes[i].scale.z = magnitude;
 				}
-							
+
 				camera.position.y += (-mouseY - camera.position.y) * .01;
 				camera.position.x += (-mouseX - camera.position.x) * .01;
 				camera.lookAt(scene.position);
