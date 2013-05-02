@@ -91,6 +91,7 @@
 			{
 				var source = context.createMediaElementSource(audio);
 				source.connect(volume);
+
                 volume.connect(analyser);
 				analyser.connect(context.destination);
 				
