@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>threejs &amp; webaudio</title>
+		<script type="text/javascript" src="lib/three/three.js"></script>
+		<script type="text/javascript" src="lib/stats.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/reset.css">
+		<style type="text/css">
+			html, body, canvas
+			{
+				width: 100%;
+				height: 100%;
+			}
+
+			body
+			{
+				background: #444;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+			var container, stats;
+			var audio, context, analyser;
+			var camera, scene, renderer;
+			var light;
+			var geometry, material;
+			var mouseX = 0, mouseY = 0;
+			var color, cube;
+			var cubes = [];
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+			var spacerWidth = 3;
+			var blockWidth = 5;
+			var numCubes = Math.round((window.innerWidth / spacerWidth) / 9) ;
+			var spacer = Math.floor(numCubes / 2) * -1;
+			var offset = Math.round(960 / numCubes);
+			var run = true;
+			var i;
+
+			container = document.createElement("div");
+			document.body.appendChild(container);
+			
+			if (!window.webkitAudioContext)
+			{
+				container.innerHTML = "<p>Web Audio is too awesome for your browser. Try Chrome</p>";
+				container.style.color = "#00ff00";
+				container.style.font = "normal 20px Arial";
+				container.style.lineHeight = "545px";
+				container.style.textAlign = "center";
+				
+				run = false;
+			}
+			
+			audio = new Audio();
+			audio.src = "assets/audio/datassette - Malfunction.mp3";
+			audio.controls = true;
+			container.appendChild(audio);
+		
+			context = new webkitAudioContext();
+			analyser = context.createAnalyser();
+		
+			window.self.addEventListener("mousemove", onMouseMove, false);
+			window.self.addEventListener("message", onMessage, false);
+			window.self.addEventListener("load", onLoad, false);
+			
+			function onMouseMove(e)
+			{
+				mouseX = (e.clientX - windowHalfX);
+				mouseY = (e.clientY - windowHalfY) * 2;
+			}
+			
+			function onMessage(e)
+			{
+				if (!e.data.focus && audio)
+				{
+					audio.pause();
+					run = false;
+				}
+				else
+				{
+					run = true;
+					requestAnimationFrame(tick);
+				}
+			}
+			
+			function onLoad(e)
+			{
+				var source = context.createMediaElementSource(audio);
+				source.connect(analyser);
+				analyser.connect(context.destination);
+				
+				init();
+			}
+			
+			function onWindowResize()
+			{
+				windowHalfX = window.self.innerWidth / 2;
+				windowHalfY = window.self.innerHeight / 2;
+
+				camera.aspect = window.self.innerWidth / window.self.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize(window.self.innerWidth, window.self.innerHeight);
+			}
+			
+			function init()
+			{
+				camera = new THREE.PerspectiveCamera(45, window.self.innerWidth / window.self.innerHeight, 1, 15000);
+				camera.position.z = 300;
+
+				scene = new THREE.Scene();
+				scene.fog = new THREE.Fog(0x000000, 1, 15000);
+
+				light = new THREE.PointLight(0x00ff00);
+				light.position.set(100, 100, 100);
+				scene.add(light);
+
+				light = new THREE.AmbientLight(0x111111);
+				scene.add(light);
+
+				geometry = new THREE.CubeGeometry(blockWidth, 100, blockWidth);
+				material = new THREE.MeshLambertMaterial({ color: 0xffffff, morphTargets: true });
+		
+				for (i = 0; i < geometry.vertices.length; i++)
+				{
+					var vertices = [];
+
+					for (var v = 0; v < geometry.vertices.length; v++)
+					{
+						vertices.push(geometry.vertices[v].clone());
+
+						if (v === i)
+						{
+							vertices[vertices.length - 1].x *= 2;
+							vertices[vertices.length - 1].y *= 2;
+							vertices[vertices.length - 1].z *= 2;
+						}
+					}
+
+					geometry.morphTargets.push({ name: "target" + i, vertices: vertices });
+				}
+				
+				for (i = 0; i < numCubes; i++)
+				{
+					cube = new THREE.Mesh(geometry, material);
+					cube.position.x = spacer * (blockWidth + spacerWidth);
+
+					cubes.push(cube);
+					scene.add(cube);
+
+					spacer++;
+				}
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.self.innerWidth, window.self.innerHeight);
+				renderer.setClearColor(0x444444, 1);
+				renderer.sortObjects = false;
+				container.appendChild(renderer.domElement);
+
+				window.self.addEventListener("resize", onWindowResize, false);
+		
+				tick();
+			};
+			
+			function pad(n, width, z)
+			{
+				z = z || '0';
+				n = n + '';
+
+				return (n.length >= width) ? n : new Array(width - n.length + 1).join(z) + n;
+			}
+			
+			function tick(delta)
+			{
+				if (run) requestAnimationFrame(tick);
+				
+				var freqByteData = new Uint8Array(analyser.frequencyBinCount);
+				analyser.getByteFrequencyData(freqByteData);
+			
+				for (var i = 0; i < numCubes; i++)
+				{
+					var magnitude = freqByteData[i * offset] / 100 || 0.01;
+					cubes[i].scale.y = magnitude;
+					cubes[i].scale.z = magnitude;
+				}
+							
+				camera.position.y += (-mouseY - camera.position.y) * .01;
+				camera.position.x += (-mouseX - camera.position.x) * .01;
+				camera.lookAt(scene.position);
+
+				renderer.render(scene, camera);
+			};
+		</script>
+	</body>
+</html>

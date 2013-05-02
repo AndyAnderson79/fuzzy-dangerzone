@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>threejs &amp; webaudio</title>
+    <script type="text/javascript" src="lib/webaudio/webaudio.js"></script>
+    <script type="text/javascript" src="lib/three/three.js"></script>
+    <script type="text/javascript" src="lib/stats.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/reset.css">
+    <style type="text/css">
+        html, body, canvas
+        {
+            width: 100%;
+            height: 100%;
+        }
+
+        body
+        {
+            background: #000;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+    var webAudio = new WebAudio();
+    var playingSound;
+    var sound = webAudio.createSound().load("assets/audio/Datassette - Flechte.mp3", onSoundLoaded);
+
+    function onSoundLoaded()
+    {
+        //playingSound = sound.play();
+    }
+
+    var container, stats;
+    var camera, scene, renderer;
+    var light;
+    var geometry, material;
+    var mouseX = 0, mouseY = 0;
+    var color, cube;
+    var cubes = [];
+    var windowHalfX = window.innerWidth / 2;
+    var windowHalfY = window.innerHeight / 2;
+    var numCubes = 99;
+    var spacing = Math.floor(numCubes / 2) * -1;
+    var i;
+    var blockWidth = 3;
+    var blockSpacing = 2;
+
+    document.addEventListener("mousemove", onMouseMove, false);
+    window.self.addEventListener("message", function(e)
+	{	
+		if (e.data.focus && sound.isPlayable())
+		{
+			playingSound = sound.play();
+		}
+		else playingSound.stop();
+	}, false);
+
+    init();
+    animate();
+
+    function init()
+    {
+        container = document.createElement("div");
+        document.body.appendChild(container);
+
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
+        camera.position.z = 300;
+
+        scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x000000, 1, 15000);
+
+        light = new THREE.PointLight(0x00ff00);
+        light.position.set(100, 100, 100);
+        scene.add(light);
+
+        light = new THREE.AmbientLight(0x111111);
+        scene.add(light);
+
+        geometry = new THREE.CubeGeometry(blockWidth, 100, blockWidth);
+        material = new THREE.MeshLambertMaterial({ color: 0xffffff, morphTargets: true });
+
+        for (i = 0; i < geometry.vertices.length; i++)
+        {
+            var vertices = [];
+
+            for (var v = 0; v < geometry.vertices.length; v++)
+            {
+                vertices.push(geometry.vertices[v].clone());
+
+                if (v === i)
+                {
+                    vertices[vertices.length - 1].x *= 2;
+                    vertices[vertices.length - 1].y *= 2;
+                    vertices[vertices.length - 1].z *= 2;
+                }
+            }
+
+            geometry.morphTargets.push({ name: "target" + i, vertices: vertices });
+        }
+
+        for (i = 0; i < numCubes; i++)
+        {
+            cube = new THREE.Mesh(geometry, material);
+            cube.position.x = spacing * (blockWidth + blockSpacing);
+
+            cubes.push(cube);
+            scene.add(cube);
+
+            spacing++;
+        }
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.self.innerWidth, window.self.innerHeight);
+        renderer.setClearColor(0x444444, 1);
+        renderer.sortObjects = false;
+        container.appendChild(renderer.domElement);
+
+        window.self.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize()
+    {
+        windowHalfX = window.self.innerWidth / 2;
+        windowHalfY = window.self.innerHeight / 2;
+
+        camera.aspect = window.self.innerWidth / window.self.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.self.innerWidth, window.self.innerHeight);
+    }
+
+    function onMouseMove(event)
+    {
+        mouseX = (event.clientX - windowHalfX);
+        mouseY = (event.clientY - windowHalfY) * 2;
+    }
+
+    function pad(n, width, z)
+    {
+        z = z || '0';
+        n = n + '';
+
+        return (n.length >= width) ? n : new Array(width - n.length + 1).join(z) + n;
+    }
+
+    function animate()
+    {
+        requestAnimationFrame(animate);
+        render();
+    }
+
+    function render()
+    {
+        var histo = (sound.isPlayable()) ? sound.makeHistogram(numCubes) : false;
+
+        for (var i = 0; i < numCubes; i++)
+        {
+            //cubes[i].rotation.x += 0.01;
+
+            if (histo)
+            {
+                var scale = (histo[i] / 128) + 1;
+
+                //cubes[i].scale.x = scale;
+                cubes[i].scale.y = scale;
+                cubes[i].scale.z = scale;
+            }
+        }
+
+        camera.position.y += (-mouseY - camera.position.y) * .01;
+        camera.position.x += (-mouseX - camera.position.x) * .01;
+        camera.lookAt(scene.position);
+
+        renderer.render(scene, camera);
+    }
+
+
+
+
+
+
+        /*renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        renderer.sortObjects = false;
+        document.body.appendChild(renderer.domElement);
+    }
+
+    var
+
+    var
+
+    var
+
+
+
+    var
+
+    var
+    var material, cube, color;
+    var cubes = [];
+    var numCubes = 15;
+    var x = Math.floor(numCubes / 2) * -1;
+
+    for (var i = 0; i < numCubes; i++)
+    {
+        color = "#" + pad((Math.floor(16777215 / (numCubes - 1)) * i).toString(16).toUpperCase(), 6, "0");
+        material = new THREE.MeshLambertMaterial({ color: color, morphTargets: true });
+        cube = new THREE.Mesh( geometry, material );
+        cube.position.x = x * 120;
+        cubes.push(cube);
+        scene.add(cube);
+        x++;
+    }
+
+    function render()
+    {
+        requestAnimationFrame(render);
+
+        var histo = (sound.isPlayable()) ? sound.makeHistogram(numCubes) : false;
+
+        for (var i = 0; i < numCubes; i++)
+        {
+            cubes[i].rotation.x += 0.01;
+            cubes[i].rotation.y += 0.01;
+
+            if (histo)
+            {
+                var scale = (histo[i] / 128) + 1;
+
+                cubes[i].scale.x = scale;
+                cubes[i].scale.y = scale;
+                cubes[i].scale.z = scale;
+            }
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    function pad(n, width, z)
+    {
+        z = z || '0';
+        n = n + '';
+
+        return (n.length >= width) ? n : new Array(width - n.length + 1).join(z) + n;
+    }*/
+
+</script>
+</body>
+</html>
