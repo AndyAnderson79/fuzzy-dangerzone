@@ -118,9 +118,13 @@
 				scene = new THREE.Scene();
 				scene.fog = new THREE.Fog(0x000000, 1, 15000);
 
-				light = new THREE.PointLight(0x00ff00);
-				light.position.set(100, 100, 100);
-				scene.add(light);
+                light = new THREE.PointLight(0xD31065);
+                light.position.set(100, 100, 100);
+                scene.add(light);
+
+                light = new THREE.PointLight(0x6210D3);
+                light.position.set(-100, -100, 500);
+                scene.add(light);
 
 				light = new THREE.AmbientLight(0x111111);
 				scene.add(light);
@@ -164,8 +168,8 @@
 				renderer.sortObjects = false;
 				container.appendChild(renderer.domElement);
 
-                text = createLabel("Datassette - Malfunction", window.self.innerWidth / 2 - 300, window.self.innerHeight / 2 - 300, 0, 100, "black", "yellow");
-                scene.add(text);
+                text = createLabel("Datassette - Malfunction", window.self.innerWidth / 2, window.self.innerHeight / 2 - 300, 0, 100, "black", "yellow");
+                //scene.add(text);
 
 				window.self.addEventListener("resize", onWindowResize, false);
 		
