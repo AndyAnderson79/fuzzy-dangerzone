@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>threejs &amp; webaudio</title>
+        <script type="text/javascript" src="lib/three/three.js"></script>
+        <script type="text/javascript" src="lib/stats.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/reset.css">
+        <style type="text/css">
+            html, body, canvas
+            {
+                width: 100%;
+                height: 100%;
+            }
+
+            body
+            {
+                background: #444;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body onload = "init();">
+        <div id="container">
+            <form>
+                <input id="play" type="button" value="Play" onclick="toggleSound(this);" disabled>
+                <label for="highpass">Highpass:</label>
+                <input id="highpass" name="highpass" type="range" min="0" max="1024" step="1" value="512" onchange="sliderChange(this);">
+                <label for="pan">Pan:</label>
+                <input id="pan" name="pan" type="range" min="-3" max="3" step="0.01" value="0" onchange="sliderChange(this);">
+                <label for="volume">Volume:</label>
+                <input id="volume" type="range" min="0" max="1" step="0.01" value="1" onchange="sliderChange(this);"/>
+            </form>
+            <pre id="info"></pre>
+        </div>
+        <script type="text/javascript">
+
+            var url = "assets/audio/datassette - Malfunction.mp3";
+            var info;
+            var audio =
+            {
+                context: null,
+                analyser: null,
+                source: null,
+                spectrum: null,
+                buffer: null,
+                nodes: {},
+                isPlaying: false
+            };
+
+            function init()
+            {
+                info = document.querySelector('#info');
+
+                if ("webkitAudioContext" in window)
+                {
+                    audio.context = new webkitAudioContext();
+
+                    audio.analyser = audio.context.createAnalyser();
+                    audio.analyser.smoothingTimeConstant = 0.85;
+                    audio.analyser.connect(audio.context.destination);
+
+                    loadSound();
+                }
+            }
+
+            function loadSound()
+            {
+                info.innerText = "LOADING";
+
+                var request = new XMLHttpRequest();
+                request.open("GET", url, true);
+                request.responseType = "arraybuffer";
+                request.onprogress = function(e)
+                {
+                    info.innerText += ".";
+                };
+                request.onload = function(e)
+                {
+                    var request = e.target;
+
+                    info.innerText = "DECODING";
+
+                    audio.context.decodeAudioData(request.response, function(buffer)
+                    {
+                        if (!buffer)
+                        {
+                            alert("error decoding file data: " + url);
+                            return;
+                        }
+
+                        audio.buffer = buffer;
+                        info.innerText = "READY";
+                        document.querySelector('#play').removeAttribute("disabled");
+                    });
+                };
+                request.onerror = function()
+                {
+                    alert("BufferLoader: XHR error");
+                };
+                request.send();
+            }
+
+            function routeSound(source)
+            {
+                audio.nodes.filter = audio.context.createBiquadFilter();
+                audio.nodes.panner = audio.context.createPanner();
+                audio.nodes.volume = audio.context.createGainNode();
+
+                var highpass = document.querySelector('#highpass').value;
+                var panX = document.querySelector('#pan').value;
+                var volume = document.querySelector('#volume').value;
+
+                audio.nodes.filter.type = 1;
+                audio.nodes.filter.frequency.value = highpass;
+                audio.nodes.panner.setPosition(panX, 0, 0);
+                audio.nodes.volume.gain.value = volume;
+
+                source.connect(audio.nodes.filter);
+                audio.nodes.filter.connect(audio.nodes.panner);
+                audio.nodes.panner.connect(audio.nodes.volume);
+                audio.nodes.volume.connect(audio.analyser);
+
+                return source;
+            }
+
+            function play()
+            {
+                if (!audio.source)
+                {
+                    var source = audio.context.createBufferSource();
+                    source.buffer = audio.buffer;
+                    source.loop = true;
+                    source = routeSound(source);
+
+                    audio.source = source;
+                    audio.source.start(0);
+                }
+                else audio.source.connect(audio.nodes.filter);
+            }
+
+            function pause()
+            {
+                audio.source.disconnect(0);
+            }
+
+            function stop()
+            {
+                audio.source.stop(0);
+            }
+
+            function toggleSound(button)
+            {
+                if (!audio.buffer)
+                {
+                    alert("still loading...");
+                }
+                else if (!audio.isPlaying)
+                {
+                    play();
+                    button.value = "Pause";
+                    audio.isPlaying = true;
+                }
+                else
+                {
+                    pause();
+                    button.value = "Play";
+                    audio.isPlaying = false;
+                }
+            }
+
+            function sliderChange(slider)
+            {
+                if (audio.context.activeSourceCount > 0)
+                {
+                    if(slider.id == "highpass") audio.nodes.filter.frequency.value = slider.value;
+                    else if (slider.id == "pan") audio.nodes.panner.setPosition(slider.value, 0, 0);
+                    else if (slider.id == "volume") audio.nodes.volume.gain.value = slider.value;
+                }
+            }
+        </script>
+    </body>
+</html>
