@@ -2,58 +2,43 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>threejs &amp; webaudio</title>
-        <script type="text/javascript" src="lib/webaudio/webaudio.js"></script>
-        <script type="text/javascript" src="lib/tquery/tquery-bundle.js"></script>
+        <title>Visualizer</title>
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <link rel="apple-touch-startup-image" href="http://andyscript.com/apple-touch-icon.png">
+        <link rel="apple-touch-icon" href="http://andyscript.com/apple-touch-icon.png">
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <script type="text/javascript" src="js/lib/createjs/easeljs-0.6.0.min.js"></script>
+        <script type="text/javascript" src="js/lib/createjs/preloadjs-0.3.0.min.js"></script>
+        <script type="text/javascript" src="js/lib/createjs/tweenjs-0.4.0.min.js"></script>
+        <script type="text/javascript" src="js/lib/P3Shims.js"></script>
+        <script type="text/javascript" src="js/lib/p3/Core-2.0.1.js"></script>
+        <script type="text/javascript" src="js/src/Main.js"></script>
+        <script type="text/javascript" src="js/src/AssetManager.js"></script>
+        <script type="text/javascript" src="js/src/Globals.js"></script>
+        <script type="text/javascript" src="js/src/screens/Preloader.js"></script>
+        <script type="text/javascript" src="js/src/screens/Background.js"></script>
+        <script type="text/javascript" src="js/src/screens/Main.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/reset.css">
     </head>
     <body>
         <script type="text/javascript">
-            var webAudio = new WebAudio();
-            var sound = webAudio.createSound().load("assets/audio/DF_SNL_116 XI.mp3", function(sound)
+            var coreOptions = {
+                autoResize: false,
+                hdThreshold: 480,
+                debugMode: true
+            };
+
+            var core = p3.Core.getInstance('gameCanvas', 960, 640, coreOptions);
+            core.addEventListener('complete', function()
             {
-                sound.loop(true).play();
+                core.removeAllEventListeners();
+                window.viz = new VIZ.Main();
             });
-            var world = tQuery.createWorld().boilerplate().start();
-            world.setClearColorHex(0x000000);
-            //world.renderer().setClearColorHex(0x000000, world.renderer().getClearAlpha());
+            core.init();
 
-            tQuery.createAmbientLight().addTo(world).color(0x888888);
-            tQuery.createDirectionalLight().addTo(world).position(+1, +1, 1).color(0x00FF00);
-            tQuery.createDirectionalLight().addTo(world).position(-1, -1, 1).color(0x0000FF);
-
-            var nBar = 41;
-            console.assert(nBar % 2, "nBar MUST be a odd number")
-            var barW = 80 / nBar;
-            var bars3d   = [];
-
-            var group3d  = tQuery.createObject3D().scale(1/20).addTo(world);
-            for (var i = 0; i < nBar; i++)
-            {
-                var bar3d   = tQuery.createCube(barW, 10, 5, new THREE.MeshLambertMaterial(
-                {
-                    ambient : 0x888888,
-                    color   : 0xFFFFFF
-                }));
-                bar3d.addTo(group3d).position((i - nBar / 2) * barW, 0, 0);
-                bars3d.push(bar3d);
-            }
-
-            world.loop().hook(function()
-            {
-                if (sound.isPlayable() === false)  return;
-
-                var nBarHalf = Math.ceil(nBar / 2);
-                var histo = sound.makeHistogram(nBarHalf);
-
-                bars3d.forEach(function(bar3d, barIdx)
-                {
-                    var histoIdx = (barIdx < nBarHalf) ? nBarHalf -1 -barIdx : barIdx - nBarHalf;
-                    var height = histo[histoIdx] / 256;
-
-                    bar3d.get(0).scale.y = height * 3;
-                    bar3d.get(0).material.color.setHSL(0.3 + height * 0.7, 1, 1);
-                });
-            });
         </script>
     </body>
 </html>
