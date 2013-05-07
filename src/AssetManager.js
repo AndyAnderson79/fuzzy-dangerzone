@@ -187,7 +187,7 @@ var AssetManager = (function()
             evt.error = e;
             instance.dispatchEvent( evt );
 
-            alert( e.toSource() );
+            //alert( e.toSource() );
 
             if( debugMode ) console.log( "[AssetManager] Loading error: "+e.error.toString() );
         };
@@ -228,13 +228,7 @@ var AssetManager = (function()
             {
                 queueLoader = new createjs.LoadQueue( false );
 
-                if( createjs.Sound )
-                {
-                    // force HTML Audio for iOS devices < v6
-                    //if( ( CONNECT4.p3core.device.os == ( P3Core.IPHONE+'/'+P3Core.IPOD ) || P3Core.getInstance().device.os == P3Core.IPAD ) && P3Core.getInstance().device.version < 6 ) createjs.Sound.registerPlugin( createjs.HTMLAudioPlugin );
-
-                    queueLoader.installPlugin( createjs.Sound );
-                }
+                if( createjs.Sound ) queueLoader.installPlugin( createjs.Sound );
                 
                 queueLoader.addEventListener( "progress", onLoadingProgress );
                 queueLoader.addEventListener( "fileload", onLoadingFileLoaded );

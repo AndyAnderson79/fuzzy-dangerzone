@@ -7,7 +7,7 @@ window.VIZ = window.VIZ || {};
     p.manifest = null;
     p.canvas = null;
     p.stage = null;
-    p.fps = 60;
+    p.fps = 30;
     p.currentScreen = null;
     p.background = null;
     p.preloader = null;
@@ -29,7 +29,30 @@ window.VIZ = window.VIZ || {};
         var assetScale = scaleFactor * 2;
 
         this.manifest = [
-            { id: "loading", src: "assets/images/loading.png" }
+            // images
+            { id: "stopButton-off", src: "assets/images/stopButton-off.png" },
+            { id: "stopButton-on", src: "assets/images/stopButton-on.png" },
+            { id: "playButton-off", src: "assets/images/playButton-off.png" },
+            { id: "playButton-on", src: "assets/images/playButton-on.png" },
+            { id: "pauseButton-off", src: "assets/images/pauseButton-off.png" },
+            { id: "pauseButton-on", src: "assets/images/pauseButton-on.png" },
+
+            // fonts
+            { id: 'ds-digitalnormal', src: 'fonts/ds-digi-webfont.eot' },
+            { id: 'ds-digitalnormal', src: 'fonts/ds-digi-webfont.woff' },
+            { id: 'ds-digitalnormal', src: 'fonts/ds-digi-webfont.ttf' },
+            { id: 'ds-digitalnormal', src: 'fonts/ds-digi-webfont.svg' },
+            { id: 'ds-digitalbold', src: 'fonts/ds-digib-webfont.eot' },
+            { id: 'ds-digitalbold', src: 'fonts/ds-digib-webfont.woff' },
+            { id: 'ds-digitalbold', src: 'fonts/ds-digib-webfont.ttf' },
+            { id: 'ds-digitalbold', src: 'fonts/ds-digib-webfont.svg' },
+
+            // audio
+            //{ id: "track", src: "assets/audio/01-datassette--the_aviatrix-dh.mp3", data: 1 }
+            //{ id: "track", src: "assets/audio/Paul Weller - Starlite _D-Pulse Remix_.mp3", data: 1 }
+            //{ id: "track", src: "assets/audio/Datassette - Flechte.mp3", data: 1 }
+            { id: "track", src: "assets/audio/datassette - Malfunction.mp3", data: 1 }
+            //{ id: "track", src: "assets/audio/DF_SNL_116 XI.mp3", data: 1 }
         ];
 
         VIZ.assetManager = AssetManager.getInstance();
@@ -81,14 +104,14 @@ window.VIZ = window.VIZ || {};
         this.preloader.addEventListener(Globals.PRELOADER_READY, onPreloaderScreenReady.bind(this));
         this.preloader.addEventListener(Globals.EXIT, onPreloaderScreenExit.bind(this));
         this.preloader.preload();
-        this.preloader = this.preloader;
+        this.currentScreen = this.preloader;
     };
 
     p.showBackgroundScreen = function()
     {
-        this.clearAllScreens();
-        this.background = new VIZ.Background();
-        this.stage.addChild(this.background.view);
+        //this.clearAllScreens();
+        //this.background = new VIZ.Background();
+        //this.stage.addChild(this.background.view);
     };
 
     p.showVisualizerScreen = function()
@@ -96,6 +119,7 @@ window.VIZ = window.VIZ || {};
         this.clearAllScreens();
         this.visualizer = new VIZ.Visualizer();
         this.stage.addChild(this.visualizer.view);
+        this.currentScreen = this.visualizer;
     };
 
     p.clearAllScreens = function()
@@ -132,7 +156,7 @@ window.VIZ = window.VIZ || {};
         VIZ.assetManager.removeEventListener(AssetManager.EVENT_COMPLETE, onLoadingComplete);
         VIZ.assetManager.removeEventListener(AssetManager.EVENT_ERROR, onLoadingError);
 
-        this.showBackgroundScreen();
+        //this.showBackgroundScreen();
         this.showVisualizerScreen();
     }
 

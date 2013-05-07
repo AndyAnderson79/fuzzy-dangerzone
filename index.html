@@ -10,9 +10,12 @@
         <!--[if lt IE 9]>
         <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
+        <script type="text/javascript" src="lib/three/three.min.js"></script>
         <script type="text/javascript" src="lib/createjs/easeljs-0.6.0.min.js"></script>
         <script type="text/javascript" src="lib/createjs/preloadjs-0.3.0.min.js"></script>
+        <script type="text/javascript" src="lib/createjs/soundjs-0.4.0.min.js"></script>
         <script type="text/javascript" src="lib/createjs/tweenjs-0.4.0.min.js"></script>
+        <script type="text/javascript" src="lib/createjs/WebAudioPlugin.js"></script>
         <script type="text/javascript" src="lib/P3Shims.js"></script>
         <script type="text/javascript" src="lib/p3/Core-2.0.1.js"></script>
         <script type="text/javascript" src="src/Main.js"></script>
@@ -22,13 +25,15 @@
         <script type="text/javascript" src="src/screens/Background.js"></script>
         <script type="text/javascript" src="src/screens/Visualizer.js"></script>
         <link rel="stylesheet" type="text/css" href="css/reset.css">
+        <link rel="stylesheet" type="text/css" href="css/VIZ.css">
     </head>
     <body>
         <script type="text/javascript">
             var coreOptions = {
                 autoResize: false,
                 hdThreshold: 480,
-                debugMode: true
+                debugMode: false,
+                backgroundColor: "#797979"
             };
 
             var core = p3.Core.getInstance('gameCanvas', 960, 640, coreOptions);
