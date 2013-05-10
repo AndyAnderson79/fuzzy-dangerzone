@@ -1,11 +1,11 @@
 (function(VIZ)
 {
     var p = Visualizer.prototype;
+    var numBars;
     var FFT_SIZE = 512;
     var BAR_WIDTH = 15;
     var BAR_HEIGHT = 300;
     var BAR_GAP = 2;
-    var numBars;
 
     p.view = null;
     p.soundInstance = null;
@@ -173,6 +173,9 @@
 
             this.soundInstance.stop();
             this.soundInstance.setPosition(0);
+
+            resetBars(this.barContainer);
+            updateClock(0, this.playTime);
         }
     }
 
@@ -262,6 +265,16 @@
     {
         var date = new Date(ms);
         clock.text = zeroPad(date.getHours(), 2) + ":" + zeroPad(date.getMinutes(), 2) + ":" + zeroPad(date.getSeconds(), 2);
+    }
+
+    function resetBars(bars)
+    {
+        for (var i = 0; i < numBars; i++)
+        {
+            var bar = bars.getChildAt(i);
+            bar.scaleY = 0.01;
+            bar.y = -((bar.scaleY - 1) * BAR_HEIGHT);
+        }
     }
 
     function zeroPad(num, places)
