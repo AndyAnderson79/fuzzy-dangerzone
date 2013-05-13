@@ -106,10 +106,14 @@
             this.barContainer.addChild(bar);
         }
 
+        var slider = new Slider();
+        slider.x = 100;
+        slider.y = 100;
+
         if (this.duration) updateClock(this.duration, this.totalTime);
 
         this.view = new createjs.Container();
-        this.view.addChild(this.stopButton, this.playButton, this.playTime, this.totalTime, this.barContainer);
+        this.view.addChild(this.stopButton, this.playButton, this.playTime, this.totalTime, this.barContainer, slider);
     };
 
     p.update = function()

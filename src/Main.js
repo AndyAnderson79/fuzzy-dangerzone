@@ -36,6 +36,9 @@ window.VIZ = window.VIZ || {};
             { id: "playButton-on", src: "assets/images/playButton-on.png" },
             { id: "pauseButton-off", src: "assets/images/pauseButton-off.png" },
             { id: "pauseButton-on", src: "assets/images/pauseButton-on.png" },
+            { id: "sliderBar", src: "assets/images/sliderBar.png" },
+            { id: "sliderButton-off", src: "assets/images/sliderButton-off.png" },
+            { id: "sliderButton-on", src: "assets/images/sliderButton-on.png" },
 
             // fonts
             { id: 'ds-digitalnormal', src: 'fonts/ds-digi-webfont.eot' },
