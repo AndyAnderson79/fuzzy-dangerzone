@@ -242,13 +242,17 @@
 
     }
 
-    function onSoundInstanceComplete( e )
+    function onSoundInstanceComplete()
     {
         this.playButton.image = VIZ.assetManager.getTexture("playButton-off");
         this.playButton.regX = this.playButton.image.width / 2;
         this.playButton.regY = this.playButton.image.height / 2;
 
-        this.stop();
+        this.soundInstance.stop();
+        this.soundInstance.setPosition(0);
+
+        resetBars(this.barContainer);
+        updateClock(0, this.playTime);
     }
 
     function onSoundInstanceFailed( e )
