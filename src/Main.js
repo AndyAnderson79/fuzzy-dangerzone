@@ -162,7 +162,7 @@ window.VIZ = window.VIZ || {};
 
     function onLoadingError(e)
     {
-        console.log(e);
+        //console.log(e);
     }
 
     function onPreloaderScreenReady()

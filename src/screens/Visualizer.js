@@ -43,7 +43,7 @@
         this.timeByteData = new Uint8Array(this.analyserNode.frequencyBinCount);
         this.frequencyChunk = Math.floor(this.analyserNode.frequencyBinCount / numBars);
 
-        this.soundInstance = createjs.Sound.play(VIZ.assetManager.getAudio("track"), null, null, 0, -1);
+        this.soundInstance = createjs.Sound.play("track", 0, 0, 0, -1);
         this.soundInstance.addEventListener("ready", onSoundInstanceReady.bind(this));
         this.soundInstance.addEventListener("succeeded", onSoundInstanceSucceeded.bind(this));
         this.soundInstance.addEventListener("interrupted", onSoundInstanceInterrupted.bind(this));
