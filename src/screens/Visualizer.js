@@ -2,13 +2,19 @@
 {
     var p = Visualizer.prototype;
     var numBars;
-    var FFT_SIZE = 512;
+    var numLines;
+
+    var FFT_SIZE = 2048;
     var BAR_WIDTH = 15;
     var BAR_HEIGHT = 300;
     var BAR_GAP = 2;
+    var LINE_WIDTH = 5;
+    var LINE_HEIGHT = 500;
+    var LINE_GAP = 1;
 
     p.view = null;
     p.soundInstance = null;
+    p.duration = null;
     p.paused = false;
     p.playing = false;
     p.analyserNode = null;
@@ -16,12 +22,16 @@
     p.frequencyByteData = null;
     p.timeByteData = null;
     p.frequencyChunk = null;
+    p.timeChunk = null;
     p.stopButton = null;
     p.playButton = null;
     p.playTime = null;
     p.totalTime = null;
     p.barContainer = null;
+    p.lineContainer = null;
+    p.progressSlider = null;
     p.bars = [];
+    p.lines = [];
 
     function Visualizer()
     {
@@ -37,11 +47,14 @@
         dynamicsNode.connect(this.analyserNode);
 
         numBars = Math.floor(Globals.STAGE_WIDTH / (BAR_WIDTH + BAR_GAP)) - 2;
+        numLines = Math.floor(Globals.STAGE_WIDTH / (LINE_WIDTH + LINE_GAP)) - 7;
 
         this.frequencyFloatData = new Float32Array(this.analyserNode.frequencyBinCount);
         this.frequencyByteData = new Uint8Array(this.analyserNode.frequencyBinCount);
-        this.timeByteData = new Uint8Array(this.analyserNode.frequencyBinCount);
         this.frequencyChunk = Math.floor(this.analyserNode.frequencyBinCount / numBars);
+
+        this.timeByteData = new Uint8Array(this.analyserNode.frequencyBinCount);
+        this.timeChunk = Math.floor(this.analyserNode.frequencyBinCount / numLines);
 
         this.soundInstance = createjs.Sound.play("track", 0, 0, 0, -1);
         this.soundInstance.addEventListener("ready", onSoundInstanceReady.bind(this));
@@ -91,11 +104,27 @@
         this.totalTime.x = Globals.STAGE_WIDTH - 20;
         this.totalTime.y = 80;
 
+        this.lineContainer = new createjs.Container();
+        this.lineContainer.x = 20;
+        this.lineContainer.y = Globals.STAGE_HEIGHT - LINE_HEIGHT - 20;
+
+        var i;
+        for (i = 0; i < numLines; i++)
+        {
+            var line = new createjs.Shape();
+            line.graphics.beginFill("rgba(255, 255, 255, 0.4)").drawRect(0, 0, LINE_WIDTH, LINE_HEIGHT);
+            line.scaleY = 0.01;
+            line.x = (LINE_WIDTH + LINE_GAP) * i;
+            line.y = -((line.scaleY - 1) * LINE_HEIGHT);
+
+            this.lineContainer.addChild(line);
+        }
+
         this.barContainer = new createjs.Container();
         this.barContainer.x = 20;
         this.barContainer.y = Globals.STAGE_HEIGHT - BAR_HEIGHT - 20;
 
-        for (var i = 0; i < numBars; i++)
+        for (i = 0; i < numBars; i++)
         {
             var bar = new createjs.Shape();
             bar.graphics.beginFill("#fff").drawRect(0, 0, BAR_WIDTH, BAR_HEIGHT);
@@ -106,14 +135,16 @@
             this.barContainer.addChild(bar);
         }
 
-        var slider = new Slider();
-        slider.x = 100;
-        slider.y = 100;
+        this.progressSlider = new VIZ.Slider();
+        this.progressSlider.view.x = 20;
+        this.progressSlider.view.y = 80;
+        this.progressSlider.addEventListener("updateClock", onProgressSliderUpdateClock.bind(this));
+        this.progressSlider.addEventListener("updatePosition", onProgressSliderUpdatePosition.bind(this));
 
         if (this.duration) updateClock(this.duration, this.totalTime);
 
         this.view = new createjs.Container();
-        this.view.addChild(this.stopButton, this.playButton, this.playTime, this.totalTime, this.barContainer, slider);
+        this.view.addChild(this.stopButton, this.playButton, this.playTime, this.totalTime, this.lineContainer, this.barContainer, this.progressSlider.view);
     };
 
     p.update = function()
@@ -122,7 +153,14 @@
         {
             if (this.playing)
             {
-                updateClock(this.soundInstance.getPosition(), this.playTime);
+                if (!this.progressSlider.buttonDown)
+                {
+                    var pos = this.soundInstance.getPosition();
+
+                    updateClock(pos, this.playTime);
+
+                    this.progressSlider.button.x = Math.floor((pos / this.duration) * (this.progressSlider.bar.image.width * this.progressSlider.bar.scaleX));
+                }
 
                 this.analyserNode.getFloatFrequencyData(this.frequencyFloatData);
                 this.analyserNode.getByteFrequencyData(this.frequencyByteData);
@@ -134,7 +172,10 @@
                     var freqSum = 0;
                     var timeSum = 0;
 
-                    for (var x = 0; x < this.frequencyChunk; x++)
+                    freqSum = this.frequencyByteData[this.frequencyChunk * i] / 255;
+                    //timeSum = this.timeByteData[this.frequencyChunk * i] / 255;
+
+                    /*for (var x = 0; x < this.frequencyChunk; x++)
                     {
                         var index = (this.frequencyChunk * i) + x;
                         freqSum += this.frequencyByteData[index];
@@ -142,10 +183,18 @@
                     }
 
                     freqSum = freqSum / this.frequencyChunk / 255;
-                    timeSum = timeSum / this.frequencyChunk / 255;
+                    timeSum = timeSum / this.frequencyChunk / 255;*/
 
                     bar.scaleY = freqSum || 0.01;
                     bar.y = -((bar.scaleY - 1) * BAR_HEIGHT);
+                }
+
+                for (var i = 0; i < numLines; i++)
+                {
+                    var line = this.lineContainer.getChildAt(i);
+
+                    line.scaleY = this.timeByteData[this.timeChunk * i] / 255 || 0.01;
+                    line.y = -((line.scaleY - 1) * LINE_HEIGHT);
                 }
             }
         }
@@ -178,6 +227,7 @@
             this.soundInstance.stop();
             this.soundInstance.setPosition(0);
 
+            resetLines(this.lineContainer);
             resetBars(this.barContainer);
             updateClock(0, this.playTime);
         }
@@ -227,6 +277,16 @@
         this.playButton.regY = this.playButton.image.height / 2;
     }
 
+    function onProgressSliderUpdateClock(e)
+    {
+        updateClock((e.value / 100) * this.duration, this.playTime);
+    }
+
+    function onProgressSliderUpdatePosition(e)
+    {
+        this.soundInstance.setPosition((e.value / 100) * this.duration);
+    }
+
     function onSoundInstanceReady( e )
     {
 
@@ -255,6 +315,7 @@
         this.soundInstance.stop();
         this.soundInstance.setPosition(0);
 
+        resetLines(this.lineContainer);
         resetBars(this.barContainer);
         updateClock(0, this.playTime);
     }
@@ -273,6 +334,16 @@
     {
         var date = new Date(ms);
         clock.text = zeroPad(date.getHours(), 2) + ":" + zeroPad(date.getMinutes(), 2) + ":" + zeroPad(date.getSeconds(), 2);
+    }
+
+    function resetLines(lines)
+    {
+        for (var i = 0; i < numLines; i++)
+        {
+            var line = lines.getChildAt(i);
+            line.scaleY = 0.01;
+            line.y = -((line.scaleY - 1) * LINE_HEIGHT);
+        }
     }
 
     function resetBars(bars)
