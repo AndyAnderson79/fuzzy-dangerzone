@@ -56,7 +56,7 @@
         this.timeByteData = new Uint8Array(this.analyserNode.frequencyBinCount);
         this.timeChunk = Math.floor(this.analyserNode.frequencyBinCount / numLines);
 
-        this.soundInstance = createjs.Sound.play("track", 0, 0, 0, -1);
+        this.soundInstance = createjs.Sound.createInstance("track");
         this.soundInstance.addEventListener("ready", onSoundInstanceReady.bind(this));
         this.soundInstance.addEventListener("succeeded", onSoundInstanceSucceeded.bind(this));
         this.soundInstance.addEventListener("interrupted", onSoundInstanceInterrupted.bind(this));
@@ -64,8 +64,8 @@
         this.soundInstance.addEventListener("failed", onSoundInstanceFailed.bind(this));
         this.soundInstance.addEventListener("loop", onSoundInstanceLoop.bind(this));
 
+        this.soundInstance.play(createjs.Sound.INTERRUPT_NONE, 0, 0, 0, 1, 0);
         this.duration = this.soundInstance.getDuration();
-
         this.soundInstance.stop();
 
         this.createView();
@@ -289,11 +289,13 @@
 
     function onSoundInstanceReady( e )
     {
-
+        console.log("ready");
     }
 
     function onSoundInstanceSucceeded( e )
     {
+        console.log("succeeded");
+
         if (!this.duration)
         {
             this.duration = this.soundInstance.getDuration();
